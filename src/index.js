@@ -17,6 +17,8 @@ connectDB()
         console.log("ERROR: ",error);
         throw err
     })
+
+    // app.on("error", (error) => {...}): This line sets up an event listener on the app object. It listens for the "error" event. Whenever the "error" event is emitted, the provided callback function (error) => {...} will be executed.
 })
 .catch((err)=> {
     console.log("MONGODB connection failed !!! ", err)
