@@ -23,7 +23,7 @@ app.use("/api/v1/users", userRouter) // write middleware.
 // to get the router use middleware
 // when someuser write "/users" then control pass to `userRouter`.
 
-// http://localhost:8000/users/register
+// http://localhost:8000/api/v1/users/register
                       // prefix
 
 export { app }
