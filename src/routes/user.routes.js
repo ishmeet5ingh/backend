@@ -17,6 +17,7 @@ router.route("/register").post(
             maxCount: 1
         }
     ]),
+    // multer gives req.files to controller as express gives req.body
     registerUser
 )
 

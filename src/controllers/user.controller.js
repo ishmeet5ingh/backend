@@ -63,6 +63,7 @@ const registerUser = asyncHandler( async(req, res)=> {
         throw new ApiError(400, "Avatar file is required")
     }
    
+    // creating USER on mongodb 
     const user = await User.create({
         fullname,
         avatar: avatar.url,
@@ -77,6 +78,7 @@ const registerUser = asyncHandler( async(req, res)=> {
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
         // write whatever is not required.
+        // remove password and refreshtoken
     )
 
         
