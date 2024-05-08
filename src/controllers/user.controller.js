@@ -18,22 +18,25 @@ const registerUser = asyncHandler( async(req, res)=> {
     // remove password and refresh token field from response.
     // check for user creation.
     // return res.
-    const {fullname, email, username, password} = req.body // destructure.
-    console.log("email: ", email)
+   
+    const {fullname, email, username,  password} = req.body
+    console.log(`email: ${email}`)
 
     if(
         [fullname, email, username, password].some((field)=> field?.trim() === "")
     ){
-        throw new ApiError(400, "All fields are mendatory")
+        throw new ApiError(400, "all the fields are required")
     }
 
-    const existedUser = User.findOne({
-        $or: [{ username }, { email }] 
-    })// anyone
+    // existing user
+    const existingUser = User.findOne({
+        $or: [{ username }, { email }]
+    })
 
-    if(existedUser){
-        throw new ApiError(409, "user with email or username already exists")
+    if(existingUser){
+        throw new ApiError(409, "User with email is already exist")
     }
+
 
     const avatarLocalPath = req.files.avatar[0]?.path
     const coverImageLocalPath = req.files?.coverImage[0]?.path
