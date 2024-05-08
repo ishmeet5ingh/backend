@@ -21,7 +21,7 @@ const registerUser = asyncHandler( async(req, res)=> {
     // return res.
    
     const {fullname, email, username,  password} = req.body
-    console.log(`email: ${email}`)
+
 
     if(
         [fullname, email, username, password].some((field)=> field?.trim() === "")
@@ -30,17 +30,26 @@ const registerUser = asyncHandler( async(req, res)=> {
     }
 
     // existing user
-    const existingUser = User.findOne({
+    const existingUser = await User.findOne({
         $or: [{ username }, { email }]
     })
+
 
     if(existingUser){
         throw new ApiError(409, "User with email is already exist")
     }
 
 
-    const avatarLocalPath = req.files.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    const avatarLocalPath = req.files?.avatar[0]?.path
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    let coverImageLocalPath;
+
+    // to check we have coverImage array or not.
+    if(req.files && Array.isArray(req.files.coverImage) ){
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+
     // will get the path uploaded by multer.
 
     if(!avatarLocalPath){
@@ -63,15 +72,19 @@ const registerUser = asyncHandler( async(req, res)=> {
         username: username.toLowerCase()
     })
 
+    // mongodb adds a _id with each entry.
+
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
+        // write whatever is not required.
     )
 
-    if(!createdUser){
-        throw new ApiError(500, "Something went wrong while registering the user")
-    }
-
-    return res.status(201).json(
+        
+        if(!createdUser){
+            throw new ApiError(500, "Something went wrong while registering the user")
+        }
+        
+        return res.status(201).json(
         new ApiResponse(200, createdUser, "User registered successfully")
     )
 
