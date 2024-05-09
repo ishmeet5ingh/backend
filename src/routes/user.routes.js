@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
-import { upload } from "../middlewares/multer.middleware.js";
+import { Router } from "express"
+import { loginUser, registerUser } from "../controllers/user.controller.js"
+import { upload } from "../middlewares/multer.middleware.js"
 
 const router = Router()
 
@@ -12,11 +12,11 @@ router.route("/register").post(
         },
         {
             name: "coverImage",
-            maxCount1
+            maxCount: 1
         }
     ]),
-    // multer gives req.files to controller as express gives req.body
-    registerUser
-)
+    registerUser)
+
+router.route("/login").post(loginUser)
 
 export default router
