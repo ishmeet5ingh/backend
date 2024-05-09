@@ -106,13 +106,15 @@ const loginUser = asyncHandler(async(req, res)=> {
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
-
+    const loggedInUser = await User.findById(user._id).select("-password, -refreshToken")
 
     const options = {
         httpOnly: true,
         secure: true
+        // by defualt cookies can be modified by anyone (fronend, backend)
+        // by providing options only be modified by server.
     }
+    // send it to cookies, design options
 
     return res
     .status(200)
@@ -123,8 +125,9 @@ const loginUser = asyncHandler(async(req, res)=> {
             200,
             {
                 user: loggedInUser, accessToken, refreshToken
+                // case - user saving AT and RT by themself.  
             },
-            "User logged In Successfully"
+            "User logged in Successfully"
         )
     )
 
