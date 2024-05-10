@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -106,15 +107,13 @@ const loginUser = asyncHandler(async(req, res)=> {
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
 
-    const loggedInUser = await User.findById(user._id).select("-password, -refreshToken")
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
 
     const options = {
         httpOnly: true,
         secure: true
-        // by defualt cookies can be modified by anyone (fronend, backend)
-        // by providing options only be modified by server.
     }
-    // send it to cookies, design options
 
     return res
     .status(200)
@@ -125,15 +124,88 @@ const loginUser = asyncHandler(async(req, res)=> {
             200,
             {
                 user: loggedInUser, accessToken, refreshToken
-                // case - user saving AT and RT by themself.  
             },
-            "User logged in Successfully"
+            "User logged In Successfully"
         )
     )
 
+
+})
+
+const logoutUser = asyncHandler(async(req, res)=> {
+    User.findByIdAndUpdate(
+        req.user.id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(
+        new ApiResponse(200, {}, "user logged out")
+    )
+
+
+
+})
+
+const refreshAccessToken = asyncHandler(async(req, res)=> {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    if(!incomingRefreshToken){
+        throw new ApiError(401, "Unauthorized request")
+    }
+
+    try {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+
+        const user = await User.findById(decodedToken?._id)
+
+        if(!user){
+            throw new ApiError(401, "User not found")
+        }
+
+        const {accessToken, newRefreshToken} = generateAccessAndRefreshToken(user._id)
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    accessToken, refreshToken: newRefreshToken
+                },
+                "Acess token refreshed"
+            )
+        )
+
+    } catch (error) {
+        throw new ApiError(401,error?.message || "Invalid Refresh Token")
+    }
 })
 
 export {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser,
+    refreshAccessToken
 }
